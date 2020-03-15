@@ -1,0 +1,18 @@
+# Autodetect text files
+* text = auto
+*.txt text
+*.cs text
+*.shader text
+
+# Force lf ending
+*.unity eol=lf
+*.prefab eol=lf
+*.mat eol=lf
+*.asset eol=lf
+
+# don't touch binary files
+*.png binary
+*.jpg binary
+*.blender binary
+*.fbx binary
+*.psd binary
