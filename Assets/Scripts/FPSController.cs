@@ -10,7 +10,9 @@ public class FPSController : MonoBehaviour
 	[SerializeField] float moveSpeed = 5f;
 	[SerializeField] float groundAccel = 0.1f;
 	[SerializeField] AnimationCurve groundAccelCurve;
+	[SerializeField] AnimationCurve velocityDecelCurve;
 	float groundAccelStartTime = 0f;
+	float velocityDecelStartTime = 0f;
 	[SerializeField] float dashSpeed = 10f;
 	[SerializeField] float jumpHeight = 6f;
 	[SerializeField] float airControl = 0.01f;
@@ -38,14 +40,18 @@ public class FPSController : MonoBehaviour
 
 	float xRotation = 0f;
 	Transform mainCam;
+	Camera cameraSettings;
+	float FOV = 0f;
 
 	Vector2 moveInput;
 
-	Vector3 momentum;
+	public Vector3 momentum;
+	float cacheGroundSpeed = 0f;
 	
 	Vector3 forward;
 	Vector3 sideways;
-	Vector3 velocity;
+	public Vector3 velocity;
+	float velocityMagnitudeCache = 0f;
 
 	float coyoteDelta = 0f;
 	float jumpBufferDelta = 1000f;
@@ -70,6 +76,8 @@ public class FPSController : MonoBehaviour
 	{
 
 		mainCam = Camera.main.transform;
+		cameraSettings = mainCam.GetComponent<Camera>();
+		FOV = cameraSettings.fieldOfView;
 		Cursor.lockState = CursorLockMode.Locked;
 		input.Listen(InputType.Move, MoveUpdate);
 	}
@@ -118,6 +126,7 @@ public class FPSController : MonoBehaviour
 
 		if(!isGroundSettled)
 		{
+			velocityDecelStartTime = 0f;
 			if(isJumping && velocity.y <= 0)
 			{
 				isJumping = false;
@@ -137,26 +146,62 @@ public class FPSController : MonoBehaviour
 			// }
 
 			momentum += moveDir * tempAirControl;
-			momentum = Vector3.ClampMagnitude(momentum, moveSpeed);
+			var tempMaxAirSpeed = cacheGroundSpeed > moveSpeed ? cacheGroundSpeed : moveSpeed;
+			momentum = Vector3.ClampMagnitude(momentum, tempMaxAirSpeed);
 		}
 		else 
 		{
+
 			coyoteDelta = 0f;
 			// velocity = Gravity.Down * (gravityStrength * gravityFallingMultiplier * dt);
-			velocity = Vector3.zero;
+			if(velocityDecelStartTime == 0f)
+			{
+				velocityMagnitudeCache = Mathf.Clamp(velocity.sqrMagnitude, 0f, 200f);
+				
+			}
+			velocity.y = 0f;
+
+			if(velocity != Vector3.zero)
+			{
+				velocityDecelStartTime += dt;
+				velocity = Vector3.Lerp(velocity, Vector3.zero, velocityDecelCurve.Evaluate(velocityDecelStartTime / ((velocityMagnitudeCache * 0.002f) + 0.00001f)));
+			}
+
 			if(moveInput != Vector2.zero)
 			{
 				groundAccelStartTime = 0f;
-				momentum += moveDir * groundAccel;
+				momentum += isDashing ? moveDir * (groundAccel * 1f) : moveDir * groundAccel;
 			}
 			else
 			{
 
 				groundAccelStartTime += dt;
-				momentum = Vector3.Lerp(momentum, Vector3.zero, groundAccelCurve.Evaluate(groundAccelStartTime));
+				momentum = Vector3.Lerp(momentum, Vector3.zero, groundAccelCurve.Evaluate(groundAccelStartTime * 0.9f));
 				// momentum = Vector3.zero;
 			}
-			momentum = Vector3.ClampMagnitude(momentum, moveSpeed);
+
+			if(Input.GetButton("Fire3"))
+			{
+				isDashing = true;
+				cacheGroundSpeed = dashSpeed;
+				cameraSettings.fieldOfView = FOV + 5f;
+
+			}
+			else
+			{
+				isDashing = false;
+			}
+			if(!isDashing)
+			{
+				cameraSettings.fieldOfView = FOV;
+				cacheGroundSpeed = moveSpeed;
+			}
+			// cacheGroundSpeed = isDashing ? dashSpeed : moveSpeed;
+			// if(Input.GetButtonUp("Fire3"))
+			// {
+			// 	cacheGroundSpeed = Mathf.Lerp(dashSpeed, moveSpeed, Time.deltaTime * 0.1f);
+			// }
+			momentum = Vector3.ClampMagnitude(momentum, cacheGroundSpeed);
 		}
 
 		if(Input.GetButtonDown("Jump"))
@@ -210,7 +255,6 @@ public class FPSController : MonoBehaviour
 			sideways = Vector3.right;
 			return;
 		}
-
 		forward = Vector3.Cross(transform.right, hit.normal).normalized;
 		sideways = Vector3.Cross(hit.normal, transform.forward).normalized;
 	}
