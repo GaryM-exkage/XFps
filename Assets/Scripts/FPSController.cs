@@ -116,7 +116,7 @@ public class FPSController : MonoBehaviour
 
 
 
-		if(!isGrounded)
+		if(!isGroundSettled)
 		{
 			if(isJumping && velocity.y <= 0)
 			{
@@ -181,8 +181,15 @@ public class FPSController : MonoBehaviour
 		// {
 		//     velocity = Vector3.ProjectOnPlane(velocity, hit.normal);
 		// }
+		// momentum = Vector3.RotateTowards(momentum, transform.eulerAngles, 360, 0);
 
-		transform.position += momentum * dt;        
+		// momentum.z = transform.forward.z;
+
+		// momentum = Quaternion.AngleAxis(transform.eulerAngles.y, Vector3.up) * momentum;
+		// momentum = Quaternion.Euler(momentum.x, momentum.y, momentum.z).eulerAngles;
+
+
+		transform.position += (transform.rotation * momentum) * dt;     
 
 		transform.position += velocity * dt;
 
@@ -197,15 +204,15 @@ public class FPSController : MonoBehaviour
 
 	void CalculateDirectionVectors()
 	{
-		if(!isGroundSettled)
+		// if(!isGrounded)
 		{
-			forward = transform.forward;
-			sideways = transform.right;
+			forward = Vector3.forward;
+			sideways = Vector3.right;
 			return;
 		}
 
-		forward = Vector3.Cross(transform.right, hit.normal);
-		sideways = Vector3.Cross(hit.normal, transform.forward);
+		forward = Vector3.Cross(transform.right, hit.normal).normalized;
+		sideways = Vector3.Cross(hit.normal, transform.forward).normalized;
 	}
 
 	Vector3 DoComplicatedCollisionGroundCheck()
@@ -266,7 +273,7 @@ public class FPSController : MonoBehaviour
 				checkedColliderIndices.Add(i);
 
 				// Get outta that collider!
-				totalDisplacement += collisionNormal * (collisionDistance + 0.001f);
+				totalDisplacement += collisionNormal * (collisionDistance + 0.008f);
 
 				// Crop down the velocity component which is in the direction of penetration
 				// velocity -= Vector3.Project(velocity, collisionNormal);
@@ -276,7 +283,7 @@ public class FPSController : MonoBehaviour
 		{
 			transform.position += totalDisplacement;
 			isGroundSettled = true;
-			isGrounded = true;
+			// isGrounded = true;
 		}
 		else
 		if(isGroundSettled)
@@ -348,10 +355,15 @@ public class FPSController : MonoBehaviour
 			Gizmos.color = Color.green;
 			// Gizmos.DrawSphere(center, groundCheckRadius);
 			Gizmos.color = Color.blue;
+
+			// Momentum Vector
+			Gizmos.DrawSphere(transform.position + ((transform.rotation * momentum) * 0.3f) + (Vector3.up * 3f), 0.1f);
+
 			// Gizmos.DrawSphere(center - new Vector3(0, groundCheckDistance, 0), groundCheckRadius);
 			Gizmos.DrawWireSphere(transform.position + new Vector3(0f, collisionVolume.height/2, 0f), collisionRadius + 0.1f);
 			Gizmos.DrawLine(center, center + (Vector3.down * rayDistance));
 			Gizmos.color = Color.red;
+			Gizmos.DrawSphere(transform.position + (transform.forward * 2f) + (Vector3.up * 3f), 0.1f);
 			Gizmos.DrawSphere(groundCheckVolume.transform.position, groundCheckVolume.radius);
 			Gizmos.DrawWireSphere(groundCheckVolume.transform.position, groundCheckRadius);
 			Gizmos.color = Color.cyan;
@@ -447,5 +459,8 @@ public class FPSController : MonoBehaviour
 
 		mainCam.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 		transform.Rotate(Vector3.up * mouseX);
+		// var athing = Quaternion.Euler(xRotation, 0f, 0f).eulerAngles;
+		// momentum = Vector3.RotateTowards(momentum, Quaternion.Euler(0f, 0f, 0f).eulerAngles, 360, 0);
+		
 	}
 }

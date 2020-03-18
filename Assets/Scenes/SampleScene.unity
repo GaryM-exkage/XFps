@@ -1606,6 +1606,7 @@ Transform:
   - {fileID: 1974220622}
   - {fileID: 2066243934}
   - {fileID: 2064733442}
+  - {fileID: 1247512005}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1733,6 +1734,99 @@ Transform:
   m_Father: {fileID: 1173452070}
   m_RootOrder: 18
   m_LocalEulerAnglesHint: {x: -45, y: 0, z: 0}
+--- !u!1 &1247512004
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1247512005}
+  - component: {fileID: 1247512008}
+  - component: {fileID: 1247512007}
+  - component: {fileID: 1247512006}
+  m_Layer: 8
+  m_Name: Cube (22)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1247512005
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247512004}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -15.815317, y: -3.62, z: -26.89}
+  m_LocalScale: {x: 7.463164, y: 1.7851999, z: 7.463164}
+  m_Children: []
+  m_Father: {fileID: 1173452070}
+  m_RootOrder: 26
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
+--- !u!65 &1247512006
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247512004}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1247512007
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247512004}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: b34666c870132d942bd812da5ef276cd, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!33 &1247512008
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1247512004}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1255743475
 GameObject:
   m_ObjectHideFlags: 0
@@ -2576,9 +2670,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1687897972}
-  - component: {fileID: 1687897976}
-  - component: {fileID: 1687897973}
-  - component: {fileID: 1687897974}
   - component: {fileID: 1687897975}
   m_Layer: 9
   m_Name: First Person Controller
@@ -2608,70 +2699,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 76.971, z: 0}
---- !u!114 &1687897973
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687897970}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca7073c525e27c4408678871d27e4422, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  groundSlopeAngle: 0
-  groundSlopeDir: {x: 0, y: 0, z: 0}
-  controller: {fileID: 0}
-  groundCheck: {fileID: 1181503911}
-  speed: 8
-  gravity: -20
-  groundDistance: 0.7
-  jumpHeight: 6
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 256
-  startDistanceFromBottom: 1.65
-  sphereCastRadius: 0.5
-  sphereCastDistance: 1.55
-  raycastLength: 0.75
-  rayOriginOffset1: {x: -0.2, y: 0, z: 0.16}
-  rayOriginOffset2: {x: 0.2, y: 0, z: -0.16}
-  slopeFriction: 50
-  slopeAngleThreshold: 45
-  isGrounded: 0
-  isSloping: 0
---- !u!114 &1687897974
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687897970}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3bdcfe0537185c4f987491273a875aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  controller: {fileID: 0}
-  moveSpeed: 13
-  jumpHeight: 5
-  gravity: -30
-  height: 3.8
-  heightPadding: 0.15
-  startDistanceFromBottom: 0.76
-  sphereCastRadius: 0.54
-  sphereCastDistance: 0.5
-  ground:
-    serializedVersion: 2
-    m_Bits: 256
-  maxGroundAngle: 46
-  debug: 1
-  slopeVelocity: {x: 0, y: 0, z: 0}
-  slopeSpeed: 30
-  groundAngle: 0
-  isGrounded: 0
-  isSloping: 0
 --- !u!114 &1687897975
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2712,7 +2739,7 @@ MonoBehaviour:
     m_RotationOrder: 4
   dashSpeed: 10
   jumpHeight: 5
-  airControl: 0.2
+  airControl: 0.4
   gravityStrength: 27
   gravityFallingMultiplier: 1.5
   coyoteTime: 0.2
@@ -2722,7 +2749,7 @@ MonoBehaviour:
   groundCheckOffset: 0.5
   groundCheckRadius: 0.74
   groundCheckDistance: 0.15
-  rayDistance: 0.25
+  rayDistance: 0.3
   collisionVolume: {fileID: 613846890}
   groundCheckVolume: {fileID: 1698394661}
   collisionRadius: 2.5
@@ -2735,20 +2762,6 @@ MonoBehaviour:
   isJumping: 0
   isDashing: 0
   debug: 1
---- !u!136 &1687897976
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1687897970}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 0
-  m_Radius: 0.6
-  m_Height: 3.8
-  m_Direction: 1
-  m_Center: {x: 0, y: 1.9, z: 0}
 --- !u!1 &1698394660
 GameObject:
   m_ObjectHideFlags: 0
