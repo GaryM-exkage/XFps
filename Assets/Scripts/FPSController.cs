@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using DG.Tweening;
 
 // TODO: Fix slope vector pushing collider
 
@@ -9,15 +10,20 @@ public class FPSController : MonoBehaviour
 	[Header("Physics Settings")]
 	[SerializeField] float moveSpeed = 5f;
 	[SerializeField] float groundAccel = 0.1f;
+	[SerializeField] float groundDecelSpeed = 0.9f;
 	[SerializeField] AnimationCurve groundAccelCurve;
 	[SerializeField] AnimationCurve velocityDecelCurve;
 	float groundAccelStartTime = 0f;
 	float velocityDecelStartTime = 0f;
 	[SerializeField] float dashSpeed = 10f;
+	[SerializeField] float dashTweenSpeed = 1f;
+	[SerializeField] int dashFOVOffset = 5;
 	[SerializeField] float jumpHeight = 6f;
 	[SerializeField] float airControl = 0.01f;
 	[SerializeField] float gravityStrength = 9.81f;
 	[SerializeField] float gravityFallingMultiplier = 2f;
+	[SerializeField] float jumpGravityMultiplier = 0.5f;
+
 	[SerializeField] float coyoteTime = 0.2f;
 	[SerializeField] float jumpBuffer = 0.5f;
 
@@ -47,7 +53,7 @@ public class FPSController : MonoBehaviour
 
 	public Vector3 momentum;
 	float cacheGroundSpeed = 0f;
-	
+	[SerializeField] float jumpGravityTween = 1f;
 	Vector3 forward;
 	Vector3 sideways;
 	public Vector3 velocity;
@@ -61,8 +67,10 @@ public class FPSController : MonoBehaviour
 
 	[SerializeField] bool isGrounded = false;
 	[SerializeField] bool isGroundSettled = false;
+	bool isVelocityDecelTweening = false;
 	bool isGroundedInLastFrame = false;
 	[SerializeField] bool isJumping = false;
+	[SerializeField] bool isHoldingJump = false;
 	[SerializeField] bool isDashing = false;
 
 	RaycastHit hit;
@@ -91,6 +99,26 @@ public class FPSController : MonoBehaviour
 
 	void Update()
 	{	
+
+		if(isHoldingJump)
+		{
+			// var gravityTween = DOTween.To(()=>jumpGravityTween, x => jumpGravityTween = x, jumpGravityMultiplier, 0.5f);
+			// gravityTween.Pause();
+
+			if(Input.GetButton("Jump"))
+			{
+				if(!DOTween.IsTweening(555))
+				DOTween.To(()=>jumpGravityTween, x => jumpGravityTween = x, jumpGravityMultiplier, 0.9f).SetId(555).SetEase(Ease.OutCubic);
+			}
+			else
+			{
+				DOTween.Kill(555);
+				jumpGravityTween = 1f;
+				isHoldingJump = false;
+			}
+		}
+
+
 		var tempMoveInput = moveInput;
 		// moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
 
@@ -126,13 +154,15 @@ public class FPSController : MonoBehaviour
 
 		if(!isGroundSettled)
 		{
-			velocityDecelStartTime = 0f;
+			// DOTween.Kill(900);
+			// velocityDecelStartTime = 0f;
 			if(isJumping && velocity.y <= 0)
 			{
 				isJumping = false;
+				// jumpGravityTween = 1f;
 			}
 			coyoteDelta += dt;
-			velocity += isJumping ? Gravity.Down * (gravityStrength * dt) : Gravity.Down * (gravityStrength * gravityFallingMultiplier * dt);
+			velocity += isJumping ? Gravity.Down * (gravityStrength * jumpGravityTween * dt) : Gravity.Down * (gravityStrength * gravityFallingMultiplier * dt);
 			// momentum *= 0.99f;e
 			float tempAirControl = airControl;
 			// if(momentum.magnitude < 0.2f)
@@ -146,7 +176,12 @@ public class FPSController : MonoBehaviour
 			// }
 
 			momentum += moveDir * tempAirControl;
-			var tempMaxAirSpeed = cacheGroundSpeed > moveSpeed ? cacheGroundSpeed : moveSpeed;
+			var tempMaxAirSpeed = cacheGroundSpeed > moveSpeed && momentum.magnitude > moveSpeed ? cacheGroundSpeed : moveSpeed;
+			if(tempMaxAirSpeed == moveSpeed && isDashing)
+			{
+				DOTween.Kill(75);
+				cameraSettings.DOFieldOfView(FOV, dashTweenSpeed);
+			}
 			momentum = Vector3.ClampMagnitude(momentum, tempMaxAirSpeed);
 		}
 		else 
@@ -154,29 +189,57 @@ public class FPSController : MonoBehaviour
 
 			coyoteDelta = 0f;
 			// velocity = Gravity.Down * (gravityStrength * gravityFallingMultiplier * dt);
-			if(velocityDecelStartTime == 0f)
+			if(!isVelocityDecelTweening)
 			{
-				velocityMagnitudeCache = Mathf.Clamp(velocity.sqrMagnitude, 0f, 200f);
-				
+				velocityMagnitudeCache = Mathf.Clamp(velocity.sqrMagnitude * 0.012f, 0f, 1f);
 			}
+				
 			velocity.y = 0f;
 
 			if(velocity != Vector3.zero)
 			{
-				velocityDecelStartTime += dt;
-				velocity = Vector3.Lerp(velocity, Vector3.zero, velocityDecelCurve.Evaluate(velocityDecelStartTime / ((velocityMagnitudeCache * 0.002f) + 0.00001f)));
+				isVelocityDecelTweening = true;
+				// velocityDecelStartTime += dt;
+				// velocity = Vector3.Lerp(velocity, Vector3.zero, velocityDecelCurve.Evaluate(velocityDecelStartTime / ((velocityMagnitudeCache * 0.002f) + 0.00001f)));
+				if(!DOTween.IsTweening(900))
+				DOTween.To(()=> velocity.x, x => velocity.x = x, 0f, velocityMagnitudeCache).SetId(900).SetEase(Ease.OutFlash);
+				if(!DOTween.IsTweening(910))
+				DOTween.To(()=> velocity.z, x => velocity.z = x, 0f, velocityMagnitudeCache).SetId(910).SetEase(Ease.OutFlash);
+
+			}
+			else
+			{
+				isVelocityDecelTweening = false;
 			}
 
 			if(moveInput != Vector2.zero)
 			{
-				groundAccelStartTime = 0f;
+				DOTween.Kill(1000);
+				// groundAccelStartTime = 0f;
 				momentum += isDashing ? moveDir * (groundAccel * 1f) : moveDir * groundAccel;
+				if(isDashing)
+				{
+					// DOTween.To(()=> cameraSettings.fieldOfView, x => cameraSettings.fieldOfView = x, FOV + 5, 0.5f );
+					if(!DOTween.IsTweening(75))
+					cameraSettings.DOFieldOfView(FOV + dashFOVOffset, dashTweenSpeed).SetId(75);
+				}
 			}
 			else
 			{
+				if(isDashing)
+				{
+					// DOTween.To(()=> cameraSettings.fieldOfView, x => cameraSettings.fieldOfView = x, FOV, 0.5f );
+					DOTween.Kill(75);
+					cameraSettings.DOFieldOfView(FOV, dashTweenSpeed);
+				}
 
-				groundAccelStartTime += dt;
-				momentum = Vector3.Lerp(momentum, Vector3.zero, groundAccelCurve.Evaluate(groundAccelStartTime * 0.9f));
+				// groundAccelStartTime += dt;
+				// momentum = Vector3.Lerp(momentum, Vector3.zero, groundAccelCurve.Evaluate(groundAccelStartTime * 0.9f));
+				if(momentum != Vector3.zero)
+				{
+					if(!DOTween.IsTweening(1000))
+					DOTween.To(()=> momentum, x => momentum = x, Vector3.zero, groundDecelSpeed).SetId(1000).SetEase(Ease.OutCubic);
+				}
 				// momentum = Vector3.zero;
 			}
 
@@ -184,18 +247,20 @@ public class FPSController : MonoBehaviour
 			{
 				isDashing = true;
 				cacheGroundSpeed = dashSpeed;
-				cameraSettings.fieldOfView = FOV + 5f;
 
 			}
 			else
 			{
+				// DOTween.To(()=> cameraSettings.fieldOfView, x => cameraSettings.fieldOfView = x, FOV, 0.5f );
+				DOTween.Kill(75);
+				cameraSettings.DOFieldOfView(FOV, dashTweenSpeed * 0.5f);
+				cacheGroundSpeed = moveSpeed;
 				isDashing = false;
 			}
-			if(!isDashing)
-			{
-				cameraSettings.fieldOfView = FOV;
-				cacheGroundSpeed = moveSpeed;
-			}
+			// if(!isDashing)
+			// {
+			// }
+
 			// cacheGroundSpeed = isDashing ? dashSpeed : moveSpeed;
 			// if(Input.GetButtonUp("Fire3"))
 			// {
@@ -215,8 +280,11 @@ public class FPSController : MonoBehaviour
 			if(isGrounded || coyoteDelta < coyoteTime && velocity.y <= 0)
 			{
 				velocity.y = Mathf.Sqrt(jumpHeight * -2f * -gravityStrength);
+				// velocity.x = 0f;
+				// velocity.z = 0f;
 				
 				isJumping = true;
+				isHoldingJump = true;
 			}
 			// momentum = velocity + (sideways * moveInput.x + forward * moveInput.z);
 		}
@@ -249,14 +317,14 @@ public class FPSController : MonoBehaviour
 
 	void CalculateDirectionVectors()
 	{
-		// if(!isGrounded)
+		if(!isGrounded)
 		{
 			forward = Vector3.forward;
 			sideways = Vector3.right;
 			return;
 		}
-		forward = Vector3.Cross(transform.right, hit.normal).normalized;
-		sideways = Vector3.Cross(hit.normal, transform.forward).normalized;
+		forward = (Quaternion.Inverse(transform.rotation) * Vector3.Cross(transform.right, hit.normal)).normalized;
+		sideways = (Quaternion.Inverse(transform.rotation) * Vector3.Cross(hit.normal, transform.forward)).normalized;
 	}
 
 	Vector3 DoComplicatedCollisionGroundCheck()
@@ -317,7 +385,7 @@ public class FPSController : MonoBehaviour
 				checkedColliderIndices.Add(i);
 
 				// Get outta that collider!
-				totalDisplacement += collisionNormal * (collisionDistance + 0.008f);
+				totalDisplacement += new Vector3(0f, collisionNormal.y * (collisionDistance + 0.008f), 0f);
 
 				// Crop down the velocity component which is in the direction of penetration
 				// velocity -= Vector3.Project(velocity, collisionNormal);
@@ -335,6 +403,10 @@ public class FPSController : MonoBehaviour
 			if(Physics.Raycast(groundCheckVolume.transform.position, Vector3.down, out hit, groundCheckVolume.radius + rayDistance, ~excludedLayers, QueryTriggerInteraction.UseGlobal))
 			{
 				isGrounded = true;
+				// if(!isJumping && transform.position.y > hit.point.y + 0.27f)
+				// {
+				// 	transform.DOMoveY(hit.point.y + 0.27f, 0.01f, false );
+				// }
 			}
 			else
 			{
@@ -452,6 +524,9 @@ public class FPSController : MonoBehaviour
 				envColl, envColl.transform.position, envColl.transform.rotation,
 				out Vector3 collisionNormal, out float collisionDistance))
 			{
+				DOTween.Kill(900);
+				DOTween.Kill(910);
+
 				// Ignore very small penetrations
 				// Required for standing still on slopes
 				// ... still far from perfect though
