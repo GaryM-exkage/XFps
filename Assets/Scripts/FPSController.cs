@@ -182,7 +182,7 @@ public class FPSController : MonoBehaviour
 
 			if(!isVelocityDecelTweening)
 			{
-				velocityMagnitudeCache = Mathf.Clamp(velocity.sqrMagnitude * 0.012f, 0f, 1f);
+				velocityMagnitudeCache = Mathf.Clamp(velocity.magnitude * 0.012f, 0f, 1f);
 			}
 				
 			velocity.y = 0f;
@@ -316,7 +316,7 @@ public class FPSController : MonoBehaviour
 		// Debug.DrawLine(transform.position + (Vector3.up * 2.5f), transform.position + (Vector3.up * 2.5f) + transform.rotation*forward, Color.green);
 		// Debug.DrawLine(transform.position + (Vector3.up * 2.5f), transform.position + (Vector3.up * 2.5f) + transform.rotation*sideways, Color.green);
 
-		if(Physics.Raycast(transform.position + (Vector3.up * 2.5f), tMoveInput, collisionVolume.radius + slopeWallRaycastOffset, ~excludedLayers))
+		if(Physics.CapsuleCast(transform.position, transform.position + (Vector3.up * 2.5f), 0.6f, tMoveInput, collisionVolume.radius + slopeWallRaycastOffset, ~excludedLayers))
 		{
 			// Debug.Log(hit.normal);
 			// Debug.Log(Vector3.SignedAngle(Vector3.Cross(transform.right, hit.normal).normalized, Vector3.up, transform.forward));
@@ -410,7 +410,12 @@ public class FPSController : MonoBehaviour
 				totalDisplacement += collisionNormal * collisionDistance;
 
 				// Crop down the velocity component which is in the direction of penetration
-				// velocity -= Vector3.Project(velocity, collisionNormal);
+				// Debug.Log(Vector3.Angle(hit.normal, Vector3.up));
+
+				// if(Vector3.Angle(hit.normal, Vector3.up) > 46f)
+				// {
+				// 	velocity -= Vector3.Project(velocity, collisionNormal);
+				// }
 			}
 		}
 
@@ -540,7 +545,18 @@ public class FPSController : MonoBehaviour
 
 
 				// Crop down the velocity component which is in the direction of penetration
-				// velocity -= Vector3.Project(velocity, collisionNormal);
+				// if(Vector3.SignedAngle(collisionNormal, Vector3.up, transform.forward) > 46f && !isGrounded && !isJumping && Vector3.Dot(collisionNormal, Vector3.up) > 0.1f)
+				// Debug.Log(Vector3.Dot(collisionNormal, -Vector3.up));
+				// Debug.Log(Vector3.Dot(collisionNormal, -Vector3.up));
+
+				if(!isJumping || !isGrounded)
+				{
+					if(Vector3.Dot(collisionNormal, -Vector3.up) < -0.1f && Vector3.Dot(collisionNormal, -Vector3.up) > -0.6f)
+					{
+						// Debug.Log(Vector3.SignedAngle(collisionNormal, Vector3.up, transform.forward));
+						velocity -= Vector3.Project(velocity, collisionNormal);
+					}
+				}
 				// momentum -= Vector3.Project(momentum, collisionNormal);
 
 				if(!isGrounded)
